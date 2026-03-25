@@ -1,14 +1,27 @@
+# Fork Notes:
+I'm calling my fork "ReMixamo-Downloader".
+
+I found that verison had issues where it would hang around 200-300 downloads, so I fixed it. This verison requires PySide6 and Python 3.14+.
+
+Forked from https://github.com/juanjo4martinez/mixamo-downloader.
+
+I have updated the src directory for python users after successful testing to alleviate the hang issue.  I will plan to fix the .exe as well, but for now just use the Python instructions.
+
+
+_Original ReadME below_:
+
 # Mixamo Downloader
+
 GUI to bulk download animations from [Mixamo](https://www.mixamo.com/).
 
 This repository contains both the Python source code (in the `/src` folder) and an `.exe` file (in the `/dist` folder) to make things easier to Windows users.
 
 ### For Python users
 
-Make sure you have [Python 3.10+](https://www.python.org/) installed on your computer, as well as the [PySide2](https://pypi.org/project/PySide2/) package:
+Make sure you have [Python 3.10+](https://www.python.org/) installed on your computer, as well as the [PySide6](https://pypi.org/project/PySide6/) package:
 
 ```bash
-pip install PySide2
+pip install PySide6
 ```
 
 Download the files from the `/src` folder to your own local directory, and double-click on the `main.pyw` script to launch the GUI.
