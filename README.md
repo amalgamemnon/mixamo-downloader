@@ -1,45 +1,93 @@
-# Branch Notes:
-I'm calling my branch "ReMixamo-Downloader".
+# ReMixamo Downloader
 
-I found that verison had issues where it would hang around 200-300 downloads, so I fixed it. This verison requires PySide6 and Python 3.14+.
+A GUI tool to bulk download animations from Mixamo — forked from [juanjo4martinez/mixamo-downloader](https://github.com/juanjo4martinez/mixamo-downloader) with significant reliability improvements.
 
-Forked from https://github.com/juanjo4martinez/mixamo-downloader.
+---
 
-I have updated the src directory for python users after successful testing to alleviate the hang issue.  I will plan to fix the .exe as well, but for now just use the Python instructions.
+## What's different in this fork
 
+The original version would reliably freeze and hang after approximately 200–400 downloads. This fork fixes that and adds several other improvements:
 
-_Original ReadME below_:
+- **Freeze fix** — the original poll loop had no exit condition, so a stalled Mixamo export job would hang the app indefinitely. The loop is now capped with a configurable timeout.
+- **Hang detection and auto-retry** — if an export job times out, the tool waits a backoff period (starting at 3 minutes, doubling each retry) and then re-submits the job from scratch. Up to 5 retries per animation by default, making overnight runs far more likely to complete fully.
+- **S3 URL expiry handling** — Mixamo's export URLs expire after 5 minutes. If the download fails because the URL expired, the tool automatically re-submits the export job to get a fresh URL rather than writing a corrupt file to disk.
+- **Corrupt file detection** — any file under 10KB is treated as a corrupt download and will be automatically re-downloaded on the next run.
+- **Rate limit handling** — HTTP 429 and 503 responses are now detected and handled with exponential backoff instead of silently failing.
+- **Request timeouts** — all API calls now have connect and read timeouts so a stalled connection can never hang the app.
+- **Skip already-downloaded files** — on resume, the tool checks whether each FBX already exists on disk and is a valid size before making any API calls, so interrupted runs can be safely restarted without re-downloading everything.
+- **Name cache** — a `mixamo_name_cache.json` file is maintained alongside the app to map animation IDs to their real filenames. This is pre-populated from the animation page listing at startup with no extra API calls, allowing instant skip checks on subsequent runs.
+- **Live animation list** — the tool now queries the Mixamo API directly for the full animation list instead of relying on a static bundled JSON file, so newly added Mixamo animations are always picked up. The `mixamo_anims.json` file is no longer required or used.
+- **Windows filename sanitization** — animation names containing characters illegal in Windows filenames (such as `/` in *"Laying Down On An Exam Table/Bed As In A Doctors Office"*) are now sanitized automatically instead of crashing.
+- **FBX for Unity format** — exports use the `fbx7_unity` format at 30fps without skin, matching Mixamo's own Unity export settings.
+- **PySide6 compatibility** — updated to work with PySide6 and Python 3.14+.
 
-# Mixamo Downloader
+---
 
-GUI to bulk download animations from [Mixamo](https://www.mixamo.com/).
+## Requirements
 
-This repository contains both the Python source code (in the `/src` folder) and an `.exe` file (in the `/dist` folder) to make things easier to Windows users.
+- Python 3.14+
+- PySide6
+- requests
 
-### For Python users
+---
 
-Make sure you have [Python 3.10+](https://www.python.org/) installed on your computer, as well as the [PySide6](https://pypi.org/project/PySide6/) package:
+## For Python users
 
-```bash
+Install the required packages:
+
+```
 pip install PySide6
+pip install requests
 ```
 
-Download the files from the `/src` folder to your own local directory, and double-click on the `main.pyw` script to launch the GUI.
+Download the files from the `/src` folder to your own local directory and double-click `main.pyw` to launch the GUI. If double-clicking doesn't work, run it from a terminal:
 
-### For non-technical users
-If you don't have Python installed on your computer or you don't want to mess with all that coding stuff, download the `/dist` folder to your computer (~300MB) and run the `mixamo_downloader.exe`.
+```
+python main.pyw
+```
 
-## How to use the Mixamo Downloader
+---
 
-1. Log into your Mixamo account.
-2. Select/upload the character you want to animate.
-3. Choose between downloading `All animations`, `Animations containing the word` and the `T-Pose (with skin)`.
-4. You can optionally set an output folder where all animations will be saved.
+## For non-technical users
 
-   > If no output folder is set, FBX files will be downloaded to the folder where the program is running.
-  
-5. Press the `Start download` button and wait until it's done.
-6. You can cancel the process at any time by pressing the `Stop` button.
+Download the `/dist` folder to your computer and run `mixamo_downloader.exe`. Keep all files in the folder together — do not move the `.exe` on its own.
 
-> [!IMPORTANT]
-> Downloading all animations can be quite slow. We're dealing with a total of 2346 animations, so don't expect it to be lighting fast.
+---
+
+## How to use
+
+1. Log into your Mixamo account inside the built-in browser.
+
+2. Select or upload the character you want to animate.
+
+3. Choose a download mode:
+   - **All animations** — downloads every animation currently available on Mixamo.
+   - **Animations containing the word** — searches Mixamo and downloads only matching results.
+   - **T-Pose (with skin)** — downloads just the T-Pose with the character mesh included.
+
+4. Optionally set an output folder where FBX files will be saved. If no folder is set, files are saved to the folder the program is running from.
+
+5. Press **Start download** and let it run. You can leave it running overnight — the hang detection and auto-retry logic will handle any stalls automatically.
+
+6. Press **Stop** at any time to cancel. The next run will automatically skip any files already downloaded.
+
+---
+
+## Resuming an interrupted run
+
+Simply run the tool again with the same output folder selected. Any FBX files already present in that folder will be detected and skipped automatically. Only missing or corrupt files will be downloaded.
+
+---
+
+## Notes
+
+- Downloading all animations is slow by design — Mixamo has over 2000 animations and each one requires its own export job on their servers. Expect a full run to take several hours.
+- The `mixamo_name_cache.json` file is stored alongside the app (not in your download folder). Do not delete it if you want fast skip detection on future runs — though it will simply be rebuilt on the next full run if it is missing.
+- All animations are downloaded without skin to save space. The T-Pose mode is the only option that includes the character mesh.
+- The `mixamo_anims.json` file included in the original repo is no longer used and can be safely deleted.
+
+---
+
+## Credits
+
+Original tool by [juanjo4martinez](https://github.com/juanjo4martinez/mixamo-downloader). Reliability improvements and PySide6 port by [amalgamemnon](https://github.com/amalgamemnon).
