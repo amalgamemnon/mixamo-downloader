@@ -1,8 +1,8 @@
 # Third-party modules
-from PySide2 import QtCore, QtWebEngineWidgets, QtWidgets
+from PySide6 import QtCore, QtWebEngineWidgets, QtWidgets, QtWebEngineCore
 
 
-class CustomWebPage(QtWebEngineWidgets.QWebEnginePage):
+class CustomWebPage(QtWebEngineCore.QWebEnginePage):
     """Custom QWebEnginePage that catches data from the JavaScript console.
 
     This allows us to read variables that are only stored in the browser,
