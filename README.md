@@ -1,5 +1,5 @@
-# Fork Notes:
-I'm calling my fork "ReMixamo-Downloader".
+# Branch Notes:
+I'm calling my branch "ReMixamo-Downloader".
 
 I found that verison had issues where it would hang around 200-300 downloads, so I fixed it. This verison requires PySide6 and Python 3.14+.
 
