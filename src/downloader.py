@@ -499,7 +499,7 @@ class MixamoDownloader(QtCore.QObject):
         """Download the animation to disk."""
         if url:
             # BUG 1 FIX: use _get() wrapper (adds timeout + retry)
-            response = _get(url)
+            response = _get(url, headers={})
 
             # Sanitize so illegal filename characters (e.g. "/" in
             # "Table/Bed") don't cause a FileNotFoundError on Windows.
